@@ -1,9 +1,18 @@
 import os
-import glob
+import glob # pip install glob2
 import pandas as pd
 import warnings
+import time
+import tqdm # pip install tqdm
 
-def concatinateCSVs(folderPath, ignore_list=[]):
+csv_paths = ['/battery_alt_dataset/regular_alt_batteries',
+             '/battery_alt_dataset/second_life_batteries',
+             '/battery_alt_dataset/recommissioned_batteries']
+
+root = os.path.dirname(os.path.realpath('csv_combine.py'))
+
+
+def concatinateCSVs(folderPath, ignore_list=[]): # combines all csv files in a folder into df
     # print('concatinating csvs in', folderPath)
     root = os.path.dirname(os.path.realpath('csv_combine.py'))
     warnings.filterwarnings("ignore")
@@ -11,7 +20,7 @@ def concatinateCSVs(folderPath, ignore_list=[]):
     # all the filenames with a .csv format
     allFilenames = [i for i in glob.glob("*.{}".format("csv"))]
     combinedFilesData = []
-    for file in allFilenames:
+    for file in tqdm.tqdm(allFilenames, desc='Combining ' + folderPath.split('/')[-1]):
         if file in ignore_list:
             continue
         try:
@@ -30,3 +39,24 @@ def concatinateCSVs(folderPath, ignore_list=[]):
         combinedFilesData = []
     os.chdir(root)
     return pd.DataFrame(combinedFilesData)
+
+
+def combine_csvs(csv_paths): # builds the one files from folders
+    for csv_path in csv_paths:
+        concatinateCSVs(root + csv_path, ignore_list=[]).to_csv(root + csv_path + '.csv', index=False)
+    return
+
+
+def convert_to_preferred_format(sec):  # only to be fancy
+    sec = sec % (24 * 3600)
+    sec %= 3600
+    min = sec // 60
+    sec %= 60
+    # print("seconds value in minutes:",min)
+    return "%02d:%02d" % (min, sec)
+
+
+if __name__ == '__main__':
+    start_time = time.time()
+    combine_csvs(csv_paths)
+    print('Time taken:', convert_to_preferred_format(time.time() - start_time))
