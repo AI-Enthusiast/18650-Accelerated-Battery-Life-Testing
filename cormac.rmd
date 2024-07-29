@@ -8,13 +8,118 @@ library(skimr)
 ```
 ```{r}
 TEST = TRUE
+ROOT = 'C://Users//corma//Documents//GitHub//18650-Accelerated-Battery-Life-Testing//'
 ```
 ```{r}
-if (TEST){
-  data_path =  '/battery_alt_dataset/regular_alt_batteries/battery00.csv'
+if (TEST) {
+  data_path = '/battery_alt_dataset/regular_alt_batteries/battery00.csv'
   print('Running in test mode')
 } else {
   data_path = '/battery_alt_dataset/regular_alt_batteries.csv'
   print('Running in production mode')
 }
+```
+```{r}
+data = read_csv(paste0(ROOT, data_path))
+```
+```{r}
+head(data)
+```
+
+```{r}
+skim(data)
+```
+```{r}
+colnames(data)
+```
+["start_time", "time", "mode", "voltage_charger", "temperature_battery", "voltage_load", "current_load", "temperature_mosfet"   "temperature_resistor", "mission_type"]
+```{r}
+# create a km plot from time
+fit = survfit(Surv(time, mode) ~ 1, data = data)
+ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Single Family Homes")
+```
+- mode: -1 = discharge, 0 = rest, 1 = charge
+- Discharge means that the battery is discharging
+- Charge means the battery is taking in charge
+- Rest means the battery is neither charging nor discharging
+```{r}
+discharge_data = data %>% filter(mode == -1)
+rest_data = data %>% filter(mode == 0)
+charge_data = data %>% filter(mode == 1)
+```
+```{r}
+# discharge_fit = survfit(Surv(time, mode) ~ 1, data = discharge_data)
+rest_fit = survfit(Surv(time, mode) ~ 1, data = rest_data)
+charge_fit = survfit(Surv(time, mode) ~ 1, data = charge_data)
+```
+```{r}
+# ggsurvplot(discharge_fit, data = discharge_data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Discharging Batteries")
+```
+```{r}
+ggsurvplot(rest_fit, data = rest_data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries at Rest")
+```
+```{r}
+ggsurvplot(charge_fit, data = charge_data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Charging Batteries")
+```
+Acelerating factors are Voltage and Temperature
+- voltage charger: [V] (continuous battery pack voltage measurement right after the connection of the battery pack to the charger board)
+- temperature battery: [C] (continuous temperature measurement on the battery cell electrode surface)
+```{r}
+alt_data = charge_data %>% mutate(
+  alt = voltage_charger * temperature_battery
+)
+skim(alt_data[,'alt'])
+```
+```{r}
+# plot the distribution of alt
+ggplot(alt_data, aes(x = alt)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  ggtitle("Distribution of ALT") +
+  theme_minimal()
+```
+```{r}
+ggplot(alt_data, aes(x = temperature_battery)) +
+        geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+        ggtitle("Distribution of Temperature") +
+        theme_minimal()
+```
+```{r}
+# plot the distibution of Voltage and Temperature
+ggplot(alt_data, aes(x = voltage_charger)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  ggtitle("Distribution of Voltage") +
+  theme_minimal()
+```
+```{r}
+# set the acelearting factor AF
+alt_data = alt_data %>% mutate(
+  AF = as.integer(alt / 10)
+)
+```
+```{r}
+# plot the distribution of AF
+ggplot(alt_data, aes(x = AF)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  ggtitle("Distribution of AF") +
+  theme_minimal()
+
+```
+```{r}
+#show <20, 20-40, and 40-60
+AF_group = alt_data %>% mutate(
+            AF1 = ifelse(AF < 20, 1, 0),
+            AF2 = ifelse(AF >= 20 & AF < 40, 1, 0),
+            AF3 = ifelse(AF >= 40 & AF < 60, 1, 0)
+    )
+AF1_fit = survfit(Surv(time, mode) ~ AF1, data = AF_group)
+AF2_fit = survfit(Surv(time, mode) ~ AF2, data = AF_group)
+AF3_fit = survfit(Surv(time, mode) ~ AF3, data = AF_group)
+```
+```{r}
+ggsurvplot(AF1_fit, data = AF_group, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for AF < 20")
+ggsurvplot(AF2_fit, data = AF_group, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for 20 <= AF < 40")
+ggsurvplot(AF3_fit, data = AF_group, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for 40 <= AF < 60")
+```
+```{r}
+
 ```
