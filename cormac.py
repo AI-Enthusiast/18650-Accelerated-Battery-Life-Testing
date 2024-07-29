@@ -10,6 +10,8 @@ if TEST:
     print('Running in test mode')
 else:
     data_path = root + '/battery_alt_dataset/regular_alt_batteries.csv'
+    print('Running in production mode')
+
 print('data_path:', data_path)
 
 data = pd.read_csv(data_path)

@@ -1,0 +1,20 @@
+```{r}
+library(fitdistrplus)
+library(survminer)
+library(tidyverse)
+library(ggplot2)
+library(survival)
+library(skimr)
+```
+```{r}
+TEST = TRUE
+```
+```{r}
+if (TEST){
+  data_path =  '/battery_alt_dataset/regular_alt_batteries/battery00.csv'
+  print('Running in test mode')
+} else {
+  data_path = '/battery_alt_dataset/regular_alt_batteries.csv'
+  print('Running in production mode')
+}
+```
