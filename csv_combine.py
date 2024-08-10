@@ -5,6 +5,12 @@ import warnings
 import time
 import tqdm  # pip install tqdm
 
+# * 9.30A: Battery pack 0.1 and 1.1
+# * 12.9A: Battery pack 3.1 and 2.2
+# * 14.3A: Battery pack 2.3 and 5.2
+# * 16.0A: Battery pack 0.0 and 1.0
+# * 19.0A: Battery pack 2.0, 3.0 and 2.1
+
 csv_paths = ['/battery_alt_dataset/regular_alt_batteries',
              '/battery_alt_dataset/second_life_batteries',
              '/battery_alt_dataset/recommissioned_batteries']
