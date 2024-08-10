@@ -1,9 +1,9 @@
 import os
-import glob # pip install glob2
+import glob  # pip install glob2
 import pandas as pd
 import warnings
 import time
-import tqdm # pip install tqdm
+import tqdm  # pip install tqdm
 
 csv_paths = ['/battery_alt_dataset/regular_alt_batteries',
              '/battery_alt_dataset/second_life_batteries',
@@ -12,7 +12,7 @@ csv_paths = ['/battery_alt_dataset/regular_alt_batteries',
 root = os.path.dirname(os.path.realpath('csv_combine.py'))
 
 
-def concatinateCSVs(folderPath, ignore_list=[]): # combines all csv files in a folder into df
+def concatinateCSVs(folderPath, ignore_list=[]):  # combines all csv files in a folder into df
     # print('concatinating csvs in', folderPath)
     root = os.path.dirname(os.path.realpath('csv_combine.py'))
     warnings.filterwarnings("ignore")
@@ -24,7 +24,10 @@ def concatinateCSVs(folderPath, ignore_list=[]): # combines all csv files in a f
         if file in ignore_list:
             continue
         try:
-            combinedFilesData.append(pd.read_csv(file))
+            df = pd.read_csv(file)
+            # # drop all rows except the one with the greatest time value
+            # df = df.drop_duplicates(subset=['time'], keep='last')
+            combinedFilesData.append(df)
         except pd.errors.EmptyDataError:
             print(file, "is empty")
             # os.remove(f)
@@ -41,9 +44,12 @@ def concatinateCSVs(folderPath, ignore_list=[]): # combines all csv files in a f
     return pd.DataFrame(combinedFilesData)
 
 
-def combine_csvs(csv_paths): # builds the one files from folders
+def combine_csvs(csv_paths):  # builds the one files from folders
     for csv_path in csv_paths:
-        concatinateCSVs(root + csv_path, ignore_list=[]).to_csv(root + csv_path + '.csv', index=False)
+        (concatinateCSVs(root + csv_path,
+                         ignore_list=['battery40.csv', 'battery41.csv',
+                                      'battery50.csv', 'battery51.csv']).
+         to_csv(root + csv_path + '.csv', index=False))
     return
 
 
