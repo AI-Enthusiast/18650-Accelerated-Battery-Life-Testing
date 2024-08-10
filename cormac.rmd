@@ -36,7 +36,7 @@ colnames(data)
 ```{r}
 # create a km plot from time
 fit = survfit(Surv(time, mode) ~ 1, data = data)
-ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Single Family Homes")
+ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
 ```
 - mode: -1 = discharge, 0 = rest, 1 = charge
 - Discharge means that the battery is discharging
@@ -91,6 +91,13 @@ ggplot(alt_data, aes(x = voltage_charger)) +
   theme_minimal()
 ```
 ```{r}
+# plot time to failure
+ggplot(alt_data, aes(x = time)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  ggtitle("Distribution of Time to Failure") +
+  theme_minimal()
+```
+```{r}
 # set the acelearting factor AF
 alt_data = alt_data %>% mutate(
   AF = as.integer(alt / 10)
@@ -120,6 +127,28 @@ ggsurvplot(AF1_fit, data = AF_group, pval = TRUE, surv.median.line = "hv", conf.
 ggsurvplot(AF2_fit, data = AF_group, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for 20 <= AF < 40")
 ggsurvplot(AF3_fit, data = AF_group, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for 40 <= AF < 60")
 ```
-```{r}
 
+ttf~weibull(m=b0+b1Temp + b2Volt + b3Temp*Volt + Type, theta = 1/lambda)
+temp = 11605/(tempC + 273.15)
+volt = log(volt)
+```{r}
+regular_batteries = read_csv(paste0(ROOT, '/battery_alt_dataset/regular_alt_batteries.csv'))
+# filter for only charging batteries
+regular_batteries = regular_batteries %>% filter(mode == 1)
+# create _temp and _volt
+regular_batteries = regular_batteries %>% mutate(
+  temp = 11605/(temperature_battery + 273.15),
+  volt = log(voltage_charger)
+)
+```
+```{r}
+model = survreg(Surv(time, mode) ~ temp + volt + temp*volt, data = regular_batteries, dist = "weibull", control = survreg.control(maxiter = 1000000))
+summary(model)
+```
+```{r}
+library(car)
+
+# Check for multicollinearity
+vif_data = regular_batteries %>% select(temp, volt, mission_type)
+vif(vif_data)
 ```
