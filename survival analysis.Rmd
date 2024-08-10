@@ -1,0 +1,30 @@
+---
+title: "Adv ML Surv Analysis"
+author: "Tyler Riddick"
+date: "2024-08-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(skimr)
+library(survival)
+library(survminer)
+library(fitdistrplus)
+```
+
+```{r}
+regular = read_csv('battery_alt_dataset/regular_alt_batteries.csv')
+```
+```{r}
+battery00 = read_csv('battery00.csv')
+battery00
+```
+
+```{r}
+battery00 %>%
+  mutate(start_date = as.Date(start_time)) %>%
+  group_by(start_date) %>%
+  summarise(mean_value = mean(temperature_battery, na.rm = TRUE))
+```
