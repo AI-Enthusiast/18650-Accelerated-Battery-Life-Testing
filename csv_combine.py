@@ -43,7 +43,7 @@ def concatinateCSVs(folderPath, ignore_list=[]): # combines all csv files in a f
 
 def combine_csvs(csv_paths): # builds the one files from folders
     for csv_path in csv_paths:
-        concatinateCSVs(root + csv_path, ignore_list=[]).to_csv(root + csv_path + '.csv', index=False)
+        concatinateCSVs(root + csv_path, ignore_list=['battery40.csv','battery41.csv','battery50.csv','battery51.csv']).to_csv(root + csv_path + '.csv', index=False)
     return
 
 
