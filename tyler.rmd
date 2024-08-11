@@ -5,6 +5,7 @@ library(tidyverse)
 library(ggplot2)
 library(survival)
 library(skimr)
+library(gridExtra)
 ```
 
 ```{r}
@@ -17,16 +18,43 @@ head(regular)
 ```
 
 ```{r}
-skim(data)
+skim(regular)
 ```
 ```{r}
-colnames(data)
+colnames(regular)
 ```
 ["start_time", "time", "mode", "voltage_charger", "temperature_battery", "voltage_load", "current_load", "temperature_mosfet"   "temperature_resistor", "mission_type"]
 ```{r}
 # create a km plot from time
-fit = survfit(Surv(time, mode) ~ 1, data = data)
-ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
+regular = regular %>%
+  mutate(type = 'regular')
+
+recom = recom %>%
+  mutate(type = 'recommissioned')
+
+second = recom %>%
+  mutate(type = 'second_life')
+
+batteries = rbind(regular,recom,second)
+```
+
+```{r}
+recom_fit = survfit(Surv(time_end, mode) ~ 1, data=recom)
+recom_plot = ggsurvplot(recom_fit, data = recom, pval = TRUE, surv.median.line = "hv", conf.int = TRUE)
+
+regular_fit = survfit(Surv(time_end, mode) ~ 1, data=regular)
+regular_plot = ggsurvplot(regular_fit, data = regular, pval = TRUE, surv.median.line = "hv", conf.int = TRUE)
+
+second_fit = survfit(Surv(time_end, mode) ~ 1, data=second)
+second_plot = ggsurvplot(second_fit, data = second, pval = TRUE, surv.median.line = "hv", conf.int = TRUE)
+```
+```{r}
+grid.arrange(regular_plot,second_plot,recom_plot,ncol=3)
+```
+
+```{r}
+fit = survfit(Surv(time_end, mode) ~ type, data = batteries)
+ggsurvplot_facet(fit, data = batteries, facet.by = 'type', pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
 ```
 - mode: -1 = discharge, 0 = rest, 1 = charge
 - Discharge means that the battery is discharging
