@@ -6,6 +6,7 @@ library(ggplot2)
 library(survival)
 library(skimr)
 library(gridExtra)
+library(grid)
 ```
 
 ```{r}
@@ -40,16 +41,19 @@ batteries = rbind(regular,recom,second)
 
 ```{r}
 recom_fit = survfit(Surv(time_end, mode) ~ 1, data=recom)
-recom_plot = ggsurvplot(recom_fit, data = recom, pval = TRUE, surv.median.line = "hv", conf.int = TRUE)
+recom_plot = ggsurvplot(recom_fit, data = recom, pval = TRUE, surv.median.line = "hv", conf.int = TRUE, color='blue')
+recom_plot = recom_plot$plot + ggtitle('Recommissioned') + theme(plot.title = element_text(size = 10, face = "bold"))
 
 regular_fit = survfit(Surv(time_end, mode) ~ 1, data=regular)
-regular_plot = ggsurvplot(regular_fit, data = regular, pval = TRUE, surv.median.line = "hv", conf.int = TRUE)
+regular_plot = ggsurvplot(regular_fit, data = regular, pval = TRUE, surv.median.line = "hv", conf.int = TRUE, color = 'red')
+regular_plot = regular_plot$plot + ggtitle('Regular') + theme(plot.title = element_text(size = 10, face = "bold"))
 
 second_fit = survfit(Surv(time_end, mode) ~ 1, data=second)
-second_plot = ggsurvplot(second_fit, data = second, pval = TRUE, surv.median.line = "hv", conf.int = TRUE)
+second_plot = ggsurvplot(second_fit, data = second, pval = TRUE, surv.median.line = "hv", conf.int = TRUE, color = 'forestgreen')
+second_plot = second_plot$plot + ggtitle('Second Life') + theme(plot.title = element_text(size = 10, face = "bold"))
 ```
 ```{r}
-grid.arrange(regular_plot,second_plot,recom_plot,ncol=3)
+grid.arrange(regular_plot,second_plot,recom_plot,ncol=3, top = textGrob('Kaplan-Meyer Curves',gp=gpar(fontsize=20,face='bold')))
 ```
 
 ```{r}
