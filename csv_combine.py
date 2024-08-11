@@ -5,11 +5,6 @@ import warnings
 import time
 import tqdm  # pip install tqdm
 
-# * 9.30A: Battery pack 0.1 and 1.1
-# * 12.9A: Battery pack 3.1 and 2.2
-# * 14.3A: Battery pack 2.3 and 5.2
-# * 16.0A: Battery pack 0.0 and 1.0
-# * 19.0A: Battery pack 2.0, 3.0 and 2.1
 
 csv_paths = ['/battery_alt_dataset/regular_alt_batteries',
              '/battery_alt_dataset/second_life_batteries',
@@ -54,9 +49,16 @@ def combine_csvs(csv_paths):  # builds the one files from folders
     for csv_path in csv_paths:
         (concatinateCSVs(root + csv_path,
                          ignore_list=['battery40.csv', 'battery41.csv',
-                                      'battery50.csv', 'battery51.csv']).
-         to_csv(root + csv_path + '.csv', index=False))
-    return
+                                      'battery50.csv', 'battery51.csv']).to_csv(root + csv_path + '.csv', index=False))
+
+        # * 9.30A: Battery pack 0.1 and 1.1
+        # * 12.9A: Battery pack 3.1 and 2.2
+        # * 14.3A: Battery pack 2.3 and 5.2
+        # * 16.0A: Battery pack 0.0 and 1.0
+        # * 19.0A: Battery pack 2.0, 3.0 and 2.1
+
+
+        return
 
 
 def convert_to_preferred_format(sec):  # only to be fancy
