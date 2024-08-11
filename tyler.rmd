@@ -28,32 +28,58 @@ colnames(regular)
 ```{r}
 # create a km plot from time
 regular = regular %>%
-  mutate(type = 'regular')
+  mutate(type = 'regular') %>%
+  filter(time_end > 10)
 
 recom = recom %>%
-  mutate(type = 'recommissioned')
+  mutate(type = 'recommissioned') %>%
+  filter(time_end > 10)
 
 second = recom %>%
-  mutate(type = 'second_life')
+  mutate(type = 'second_life') %>%
+  filter(time_end > 10)
 
 batteries = rbind(regular,recom,second)
 ```
 
 ```{r}
+get_time_at_50 <- function(surv_fit) {
+  # Find the time where the survival drops to 50% or closest to it
+  index <- which.min(abs(surv_fit$surv - 0.5))
+  time_50 <- surv_fit$time[index]
+  return(time_50)
+}
+
+recom_time_50 <- get_time_at_50(recom_fit)
+regular_time_50 <- get_time_at_50(regular_fit)
+```
+
+```{r, echo=FALSE}
+offset = 1000
+textsize = 5
+
 recom_fit = survfit(Surv(time_end, mode) ~ 1, data=recom)
-recom_plot = ggsurvplot(recom_fit, data = recom, pval = TRUE, surv.median.line = "hv", conf.int = TRUE, color='blue')
-recom_plot = recom_plot$plot + ggtitle('Recommissioned') + theme(plot.title = element_text(size = 10, face = "bold"))
+recom_time_50 <- get_time_at_50(recom_fit)
+recom_plot = ggsurvplot(recom_fit, data = recom, pval = TRUE, surv.median.line = "hv", conf.int = TRUE, palette='blue')
+recom_plot = recom_plot$plot + ggtitle('Recommissioned') + theme(plot.title = element_text(size = 15, face = "bold"), axis.text = element_text(size=8),axis.title.y = element_blank(),axis.ticks.y = element_blank(),axis.text.y=element_blank(),axis.line.y=element_blank(),legend.title=element_blank(),legend.position="none")+ geom_hline(yintercept = 0.5, linetype = "dashed") + geom_point(aes(x = recom_time_50, y = 0.5),color='black',size=3)+
+  geom_text(aes(x = recom_time_50+offset, y = 0.5,label=paste0("50% (", round(recom_time_50, 2), ")")),vjust = -1, size = textsize)
 
 regular_fit = survfit(Surv(time_end, mode) ~ 1, data=regular)
-regular_plot = ggsurvplot(regular_fit, data = regular, pval = TRUE, surv.median.line = "hv", conf.int = TRUE, color = 'red')
-regular_plot = regular_plot$plot + ggtitle('Regular') + theme(plot.title = element_text(size = 10, face = "bold"))
+regular_time_50 <- get_time_at_50(regular_fit)
+regular_plot = ggsurvplot(regular_fit, data = regular, pval = TRUE, surv.median.line = "hv", conf.int = TRUE, palette = 'red')
+regular_plot = regular_plot$plot + ggtitle('Regular') + theme(plot.title = element_text(size = 15, face = "bold"),legend.title=element_blank(),legend.position="none") + geom_hline(yintercept = 0.5, linetype = "dashed") + geom_point(aes(x = regular_time_50, y = 0.5),color='black',size=3)+
+  geom_text(aes(x = regular_time_50+offset+150, y = 0.5,label=paste0("50% (", round(regular_time_50, 2), ")")),vjust = -1, size = textsize)
 
 second_fit = survfit(Surv(time_end, mode) ~ 1, data=second)
-second_plot = ggsurvplot(second_fit, data = second, pval = TRUE, surv.median.line = "hv", conf.int = TRUE, color = 'forestgreen')
-second_plot = second_plot$plot + ggtitle('Second Life') + theme(plot.title = element_text(size = 10, face = "bold"))
+second_time_50 <- get_time_at_50(second_fit)
+second_plot = ggsurvplot(second_fit, data = second, pval = TRUE, surv.median.line = "hv", conf.int = TRUE, palette = 'forestgreen')
+second_plot = second_plot$plot + ggtitle('Second Life') + theme(plot.title = element_text(size = 15, face = "bold"), legend.title=element_blank(), axis.title.y = element_blank(), axis.ticks.y = element_blank(),axis.text.y=element_blank(), legend.position="none",axis.line.y = element_blank()) + geom_hline(yintercept = 0.5, linetype = "dashed") + geom_point(aes(x = second_time_50, y = 0.5),color='black',size=3)+
+  geom_text(aes(x = second_time_50+offset, y = 0.5,label=paste0("50% (", round(second_time_50, 2), ")")),vjust = -1, size = textsize)
 ```
-```{r}
-grid.arrange(regular_plot,second_plot,recom_plot,ncol=3, top = textGrob('Kaplan-Meyer Curves',gp=gpar(fontsize=20,face='bold')))
+
+```{r, echo = FALSE, fig.width=10, fig.height=8}
+grid.arrange(regular_plot,second_plot,recom_plot,ncol=3, top = textGrob('Kaplan-Meyer Curves for Battery Packs',gp=gpar(fontsize=20,face='bold')))
+ggsave('kmcurves.png')
 ```
 
 ```{r}
