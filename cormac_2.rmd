@@ -1,0 +1,103 @@
+```{r}
+library(fitdistrplus)
+library(survminer)
+library(tidyverse)
+library(ggplot2)
+library(survival)
+library(skimr)
+```
+```{r}
+ROOT = 'C://Users//corma//Documents//GitHub//18650-Accelerated-Battery-Life-Testing//'
+# read in regular.csv
+data = read_csv(paste0(ROOT, 'regular.csv'))
+```
+```{r}
+colnames(data)
+```
+[1] "...1"                "dischargePhase"      "voltage_charger"
+[4] "temperature_battery" "current_load"        "time_end"
+
+```{r}
+# since every row is a failure event, we can just use the time_end column
+fit = survfit(Surv(time_end) ~ 1, data = data)
+ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
+```
+```{r}
+# histogram of time_end
+ggplot(data, aes(x = time_end)) +
+  geom_histogram(bins = 30) +
+  ggtitle("Histogram of Time to Failure")
+```
+
+
+```{r}
+# filter out temps < 0
+data = data %>% filter(temperature_battery > 0)
+# drop times at 0
+data = data %>% filter(time_end > 10)
+# graph time x temperature_battery
+# color by magma
+ggplot(data, aes(x =temperature_battery, y = time_end, color= current_load)) +
+  geom_point() + # color magma
+  scale_color_viridis_c() +
+  ggtitle("Time to Failure vs Temperature Battery")
+```
+
+```{r}
+# add a col for failure (they all failed)
+data$failure = 1
+# drop instances where time_end is NA or 0
+data = data %>% filter(!is.na(time_end) & time_end != 0)
+```
+```{r}
+# create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
+weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
+  voltage_charger +
+  temperature_battery
+                      , data = data, dist = "weibull")
+summary(weibull_fit)
+```
+(Intercept)                         18.07880    0.46667  38.7 <2e-16
+current_load                        -0.04667    0.00359 -13.0 <2e-16
+voltage_charger                     -1.89913    0.06973 -27.2 <2e-16
+temperature_battery                 -0.35592    0.01466 -24.3 <2e-16
+voltage_charger:temperature_battery  0.06021    0.00228  26.4 <2e-16
+Log(scale)                          -0.76061    0.00000  -Inf <2e-16
+
+Scale= 0.467
+
+Weibull distribution
+Loglik(model)= -40858.6   Loglik(intercept only)= -36321
+Chisq= -9075.19 on 4 degrees of freedom, p= 1
+Number of Newton-Raphson Iterations: 30
+n= 4863
+
+
+# this is a weibull model with a log scale of 0.467 is the best fit for the data
+
+```{r}
+# a function that takes a model and returns the mse, aic, and r^2
+model_metrics = function(model, data) {
+  pred = predict(model, type = "response")
+  mse = mean((pred - data$time_end)^2)
+  aic = AIC(model)
+  r2 = 1 - mse / var(data$time_end)
+  print("MSE:")
+  print(mse)
+  print("AIC:")
+  print(aic)
+  print("R^2:")
+  print(r2)
+  return(c(mse, aic, r2))
+}
+model_metrics(weibull_fit, data)
+```
+```{r}
+# a function that makes a km plot for a dataset
+km_plot = function(data) {
+  fit = survfit(Surv(time_end) ~ 1, data = data)
+  ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
+}
+km_plot(data)
+
+```
