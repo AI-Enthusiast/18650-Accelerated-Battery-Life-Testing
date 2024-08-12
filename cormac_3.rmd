@@ -1,0 +1,168 @@
+
+```{r}
+library(fitdistrplus)
+library(survminer)
+library(tidyverse)
+library(ggplot2)
+library(survival)
+library(skimr)
+library(grid)
+library(gridExtra)
+```
+```{r}
+ROOT = 'C://Users//corma//Documents//GitHub//18650-Accelerated-Battery-Life-Testing//'
+# read in regular.csv
+regular = read_csv('regular.csv')
+second_life = read_csv('second.csv')
+recommish = read_csv('recommissioned.csv')
+
+# create a big data set with all the data and a new row indicating the source
+regular$source = 'Regular'
+second_life$source = 'Second Life'
+recommish$source = 'Recommissoned'
+big = rbind(regular, second_life, recommish)
+# filter out temps < 0
+big = big %>% filter(temperature_battery > 0)
+# drop times at 0
+big = big %>% filter(time_end > 10)
+```
+```{r}
+colnames(regular)
+```
+```{r}
+```
+[1] "...1"                "dischargePhase"      "voltage_charger"
+[4] "temperature_battery" "current_load"        "time_end"
+[7] "mode"
+```{r}
+# plot a histogram of time_end facetted by dischargePhase
+ggplot(big, aes(x = time_end)) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~source) +
+  ggtitle("Histogram of Time to Failure by Discharge Phase") +
+        # bold the title and the axis labels
+    theme(plot.title = element_text(face = "bold"),
+          axis.title = element_text(face = "bold"))
+```
+```{r}
+# recreae the above histogram but with a density plot
+ggplot(big, aes(y = time_end)) +
+  geom_density(aes(color = source), fill = "white") +
+  ggtitle("Density of Time to Failure by Degreration Phase") +
+  # rename the x and y axis
+    labs(x = "Density", y = "Time to Failure") +
+  facet_wrap(~source) +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"), legend.position = "none")
+```
+```{r}
+# recreate the above histogram but color by current_load
+ggplot(big, aes(x = time_end, fill = current_load)) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~source) +
+  ggtitle("Histogram of Time to Failure by Discharge Phase and Current Load") +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
+```
+```{r}
+ggplot(big, aes(x =temperature_battery, y = time_end, color= current_load)) +
+  geom_point() + # color magma
+  scale_color_viridis_c() +
+  ggtitle("Time to Failure vs Temperature Battery")
+```
+```{r}
+# now do voltage_charger
+ggplot(big, aes(x =voltage_charger, y = time_end, color= current_load)) +
+  geom_point() + # color magma
+  scale_color_viridis_c() +
+  #rename the x and y axis
+    labs(x = "Voltage Charger", y = "Time to Failure") +
+  ggtitle("Time to Failure vs Voltage Charger") +
+theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"), legend.position = "none")
+```
+```{r}
+# Assuming `big` is the combined dataset
+# 1. Histogram of time_end facetted by source
+ggplot(big, aes(x = time_end)) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~source) +
+  ggtitle("Histogram of Time to Failure by Source") +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
+
+```
+```{r}
+
+# 2. Density plot of time_end facetted by source
+ggplot(big, aes(y = time_end, fill = source)) +
+  geom_density(alpha = 0.5) +
+  facet_wrap(~source) +
+  ggtitle("Density of Time to Failure by Source") +
+  labs(x = "Density", y = "Time to Failure") +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"), legend.position = "none")
+
+```
+```{r}
+
+# 3. Histogram of time_end colored by current_load and facetted by source
+ggplot(big, aes(x = time_end, fill = as.factor(current_load))) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~source) +
+  ggtitle("Histogram of Time to Failure by Source and Current Load") +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
+
+```
+```{r}
+
+# 4. Scatter plot of temperature_battery vs time_end colored by current_load
+ggplot(big, aes(x = temperature_battery, y = time_end, color = as.factor(current_load))) +
+  geom_point() +
+  scale_color_viridis_c() +
+  ggtitle("Time to Failure vs Temperature Battery") +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
+
+```
+```{r}
+
+# 5. Scatter plot of voltage_charger vs time_end colored by current_load
+ggplot(big, aes(x = voltage_charger, y = time_end, color = as.factor(current_load))) +
+  geom_point() +
+  scale_color_viridis_c() +
+  ggtitle("Time to Failure vs Voltage Charger") +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
+
+```
+```{r}
+
+# 6. Boxplot of time_end grouped by dischargePhase
+ggplot(big, aes(x = as.factor(dischargePhase), y = time_end)) +
+  geom_boxplot() +
+  ggtitle("Boxplot of Time to Failure by Discharge Phase") +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
+
+```
+```{r}
+
+# 7. Boxplot of temperature_battery grouped by dischargePhase
+ggplot(big, aes(x = as.factor(dischargePhase), y = temperature_battery)) +
+  geom_boxplot() +
+  ggtitle("Boxplot of Temperature Battery by Discharge Phase") +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
+
+
+```
+```{r}
+# 8. Boxplot of voltage_charger grouped by dischargePhase
+ggplot(big, aes(x = as.factor(dischargePhase), y = voltage_charger)) +
+  geom_boxplot() +
+  ggtitle("Boxplot of Voltage Charger by Discharge Phase") +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
+```

@@ -75,7 +75,7 @@ Number of Newton-Raphson Iterations: 30
 n= 4863
 
 
-# this is a weibull model with a log scale of 0.467 is the best fit for the data
+# this is tess us that the current load, voltage charger, temperature battery, and the interaction between voltage charger and temperature battery are all significant predictors of time to failure
 
 ```{r}
 # a function that takes a model and returns the mse, aic, and r^2
