@@ -37,7 +37,14 @@ ggplot(data, aes(x = time_end)) +
 data = data %>% filter(temperature_battery > 0)
 # drop times at 0
 data = data %>% filter(time_end > 10)
+# turn temperature into the Arrhenius model and voltage into log voltage
+
+data = data %>%
+  mutate(arr_temp = 11605/(temperature_battery + 273.15),
+         log_volt = log10(voltage_charger))
+
 # graph time x temperature_battery
+
 # color by magma
 ggplot(data, aes(x =temperature_battery, y = time_end, color= current_load)) +
   geom_point() + # color magma
@@ -54,8 +61,8 @@ data = data %>% filter(!is.na(time_end) & time_end != 0)
 ```{r}
 # create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
 weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
-  voltage_charger +
-  temperature_battery
+  log_volt +
+  arr_temp
                       , data = data, dist = "weibull")
 summary(weibull_fit)
 ```
