@@ -5,11 +5,13 @@ library(tidyverse)
 library(ggplot2)
 library(survival)
 library(skimr)
+library(grid)
+library(gridExtra)
 ```
 ```{r}
 ROOT = 'C://Users//corma//Documents//GitHub//18650-Accelerated-Battery-Life-Testing//'
 # read in regular.csv
-data = read_csv(paste0(ROOT, 'regular.csv'))
+data = read_csv('second.csv')
 ```
 ```{r}
 colnames(data)
@@ -53,7 +55,7 @@ data = data %>% filter(!is.na(time_end) & time_end != 0)
 # create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
 weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
   voltage_charger +
-  temperature_battery + voltage_charger * temperature_battery
+  temperature_battery
                       , data = data, dist = "weibull")
 summary(weibull_fit)
 ```
@@ -95,8 +97,84 @@ model_metrics(weibull_fit, data)
 ```{r}
 # graph the predicted vs actual time to failure
 pred = predict(weibull_fit, type = "response")
-ggplot(data, aes(x = time_end, y = pred)) +
-  geom_point() +
+secondplot = ggplot(data, aes(x = time_end, y = pred)) +
+  geom_point(color='palegreen4',alpha=.5) +
   geom_abline(intercept = 0, slope = 1, color = "red") +
-  ggtitle("Predicted vs Actual Time to Failure") + xlab("Actual Time to Failure") + ylab("Predicted Time to Failure")
+  ylab("Predicted Time to Failure") + 
+  theme(axis.title.y = element_text(size=14), plot.subtitle = element_text(size = 18),axis.text = element_text(size=12)) +
+  xlab('Actual Time to Failure')+
+  labs(subtitle='Second Life Batteries') +
+  xlim(0,3500)
 ```
+
+```{r}
+reg = read_csv('regular.csv')
+
+# filter out temps < 0
+reg = reg %>% filter(temperature_battery > 0)
+# drop times at 0
+reg = reg %>% filter(time_end > 10)
+# graph time x temperature_battery
+
+reg$failure = 1
+# drop instances where time_end is NA or 0
+reg = reg %>% filter(!is.na(time_end) & time_end != 0)
+
+# create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
+weibull_fitreg = survreg(Surv(time_end, failure) ~ current_load +
+  voltage_charger +
+  temperature_battery
+                      , data = reg, dist = "weibull")
+summary(weibull_fitreg)
+```
+```{r}
+predreg = predict(weibull_fitreg, type = "response")
+regplot = ggplot(reg, aes(x = time_end, y = predreg)) +
+  geom_point(color='cyan4',alpha=.5) +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  ylab("Predicted Time to Failure") + 
+  xlab(' ') +
+  theme(axis.title.y = element_text(size=14),plot.subtitle = element_text(size = 18),plot.title = element_text(size = 24),axis.text = element_text(size=12)) +
+  labs(subtitle='Regular Batteries')+
+  ggtitle('Predicted Time to Failure vs Actual') +
+  xlim(0,3500)
+```
+
+```{r}
+recom = read_csv('recommissioned.csv')
+
+# filter out temps < 0
+recom = recom %>% filter(temperature_battery > 0)
+# drop times at 0
+recom = recom %>% filter(time_end > 10)
+# graph time x temperature_battery
+
+recom$failure = 1
+# drop instances where time_end is NA or 0
+recom = recom %>% filter(!is.na(time_end) & time_end != 0)
+
+# create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
+weibull_fitrecom = survreg(Surv(time_end, failure) ~ current_load +
+  voltage_charger +
+  temperature_battery
+                      , data = recom, dist = "weibull")
+summary(weibull_fitrecom)
+```
+```{r}
+
+predrecom = predict(weibull_fitrecom, type = "response")
+recomplot = ggplot(recom, aes(x = time_end, y = predrecom)) +
+  geom_point(color='khaki4',alpha=.5) +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  ylab("Predicted Time to Failure") +
+  theme(axis.title.y = element_text(size=14), plot.subtitle = element_text(size = 18),axis.text = element_text(size=12)) +
+  xlab(' ')+
+  labs(subtitle='Recommissioned Batteries')+
+  xlim(0,3500)
+```
+
+```{r}
+weibullreg = grid.arrange(regplot,recomplot,secondplot,ncol=1)
+ggsave('weibullregression.png',weibullreg, width=10,height=16)
+```
+
