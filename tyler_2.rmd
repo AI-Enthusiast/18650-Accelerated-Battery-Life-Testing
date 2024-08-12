@@ -50,14 +50,6 @@ ggplot(second, aes(x = time_end)) +
        y = 'Count',
        subtitle = 'Second-Life Battery Packs')
 ```
-```{r}
-# filter out temps < 0
-regular = regular %>% filter(temperature_battery > 0)
-# drop times at 0
-regular = regular %>% filter(time_end > 10)
-# graph time x temperature_battery
-# color by magma
-```
 
 ```{r}
 ggplot(regular, aes(x =temperature_battery, y = time_end, color= current_load)) +
@@ -71,10 +63,10 @@ ggplot(regular, aes(x =temperature_battery, y = time_end, color= current_load)) 
 
 ```{r}
 # filter out temps < 0
-reg = reg %>% filter(temperature_battery > 0)
+regular = regular %>% filter(temperature_battery > 0)
 
 # drop times at 0
-reg = reg %>% filter(time_end > 10)
+regular = regular %>% filter(time_end > 10)
 
 # add a col for failure (they all failed)
 regular$failure = 1
@@ -87,12 +79,12 @@ regular = regular %>%
 ```
 ```{r}
 # create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
-weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
+weibull_fitreg = survreg(Surv(time_end, failure) ~ current_load +
   log_volt +
   arr_temp +
     arr_temp*log_volt
                       , data = regular, dist = "weibull")
-summary(weibull_fit)
+summary(weibull_fitreg)
 ```
 
 
@@ -113,15 +105,7 @@ model_metrics = function(model, regular) {
   print(r2)
   return(c(mse, aic, r2))
 }
-model_metrics(weibull_fit, regular)
-```
-```{r}
-# a function that makes a km plot for a dataset
-km_plot = function(data) {
-  fit = survfit(Surv(time_end) ~ 1, data = data)
-  ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
-}
-km_plot(regular)
+model_metrics(weibull_fitreg, regular)
 ```
 
 # Recommissioned Batteries
@@ -142,12 +126,17 @@ recom$failure = 1
 # drop instances where time_end is NA or 0
 recom = recom %>% filter(!is.na(time_end) & time_end != 0)
 
+recom = recom %>%
+  mutate(arr_temp = 11605/(temperature_battery + 273.15),
+         log_volt = log10(voltage_charger))
+
 # create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
-weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
-  voltage_charger +
-  temperature_battery
+weibull_fitrecom = survreg(Surv(time_end, failure) ~ current_load +
+  arr_temp +
+  log_volt +
+    arr_temp*log_volt
                       , data = recom, dist = "weibull")
-summary(weibull_fit)
+summary(weibull_fitrecom)
 ```
 
 # this is a weibull model with a log scale of 0.222 is the best fit for the data
@@ -166,7 +155,7 @@ model_metrics = function(model, recom) {
   print(r2)
   return(c(mse, aic, r2))
 }
-model_metrics(weibull_fit, recom)
+model_metrics(weibull_fitrecom, recom)
 ```
 ```{r}
 # a function that makes a km plot for a dataset
@@ -190,12 +179,16 @@ second$failure = 1
 # drop instances where time_end is NA or 0
 second = second %>% filter(!is.na(time_end) & time_end != 0)
 
+second = second %>%
+  mutate(arr_temp = 11605/(temperature_battery + 273.15),
+         log_volt = log10(voltage_charger))
+
 # create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
-weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
-  voltage_charger +
-  temperature_battery + voltage_charger*temperature_battery
+weibull_fitsec = survreg(Surv(time_end, failure) ~ current_load +
+  log_volt +
+  arr_temp + log_volt*arr_temp
                       , data = second, dist = "weibull")
-summary(weibull_fit)
+summary(weibull_fitsec)
 ```
 ```{r}
 model_metrics = function(model, second) {
@@ -211,11 +204,45 @@ model_metrics = function(model, second) {
   print(r2)
   return(c(mse, aic, r2))
 }
-model_metrics(weibull_fit, second)
+model_metrics(weibull_fitsec, second)
 ```
+## Weibull Regression Visualizations
 
+```{r}
+predreg = predict(weibull_fitreg, type = "response")
+regplot = ggplot(reg, aes(x = time_end, y = predreg)) +
+  geom_point(color='cyan4',alpha=.5) +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  ylab("Predicted Time to Failure") + 
+  xlab(' ') +
+  theme(axis.title.y = element_text(size=14),plot.subtitle = element_text(size = 18),plot.title = element_text(size = 24),axis.text = element_text(size=12)) +
+  labs(subtitle='Regular Batteries')+
+  ggtitle('Predicted Time to Failure vs Actual') +
+  xlim(0,3500)
 
+predsec = predict(weibull_fitsec, type = "response")
+secondplot = ggplot(second, aes(x = time_end, y = predsec)) +
+  geom_point(color='palegreen4',alpha=.5) +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  ylab("Predicted Time to Failure") + 
+  theme(axis.title.y = element_text(size=14), plot.subtitle = element_text(size = 18),axis.text = element_text(size=12)) +
+  xlab('Actual Time to Failure')+
+  labs(subtitle='Second Life Batteries') +
+  xlim(0,3500)
 
+predrecom = predict(weibull_fitrecom, type = "response")
+recomplot = ggplot(recom, aes(x = time_end, y = predrecom)) +
+  geom_point(color='khaki4',alpha=.5) +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  ylab("Predicted Time to Failure") +
+  theme(axis.title.y = element_text(size=14), plot.subtitle = element_text(size = 18),axis.text = element_text(size=12)) +
+  xlab(' ')+
+  labs(subtitle='Recommissioned Batteries')+
+  xlim(0,3500)
+
+weibullreg = grid.arrange(regplot,recomplot,secondplot,ncol=1)
+ggsave('weibullregression.png',weibullreg, width=10,height=16)
+```
 
 
 
