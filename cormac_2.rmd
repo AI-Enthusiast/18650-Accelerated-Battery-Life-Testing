@@ -15,6 +15,9 @@ data = read_csv('second.csv')
 ```
 ```{r}
 colnames(data)
+regular = read_csv('regular.csv')
+recom = read_csv('recommissioned.csv')
+second = read_csv('second.csv')
 ```
 [1] "...1"                "dischargePhase"      "voltage_charger"
 [4] "temperature_battery" "current_load"        "time_end"
@@ -127,13 +130,34 @@ reg$failure = 1
 # drop instances where time_end is NA or 0
 reg = reg %>% filter(!is.na(time_end) & time_end != 0)
 
+reg = reg %>%
+  mutate(arr_temp = 11605/(temperature_battery + 273.15),
+         log_volt = log10(voltage_charger))
+
 # create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
 weibull_fitreg = survreg(Surv(time_end, failure) ~ current_load +
-  voltage_charger +
-  temperature_battery
+  log_volt +
+  arr_temp
                       , data = reg, dist = "weibull")
 summary(weibull_fitreg)
 ```
+```{r}
+model_metrics = function(model, reg) {
+  pred = predict(model, type = "response")
+  mse = mean((pred - data$time_end)^2)
+  aic = AIC(model)
+  r2 = 1 - mse / var(data$time_end)
+  print("MSE:")
+  print(mse)
+  print("AIC:")
+  print(aic)
+  print("R^2:")
+  print(r2)
+  return(c(mse, aic, r2))
+}
+model_metrics(weibull_fitreg, reg)
+```
+
 ```{r}
 predreg = predict(weibull_fitreg, type = "response")
 regplot = ggplot(reg, aes(x = time_end, y = predreg)) +
