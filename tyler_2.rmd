@@ -1,0 +1,234 @@
+```{r}
+library(fitdistrplus)
+library(survminer)
+library(tidyverse)
+library(ggplot2)
+library(survival)
+library(skimr)
+```
+```{r}
+#ROOT = 'C://Users//corma//Documents//GitHub//18650-Accelerated-Battery-Life-Testing//'
+# read in regular.csv
+regular = read_csv('regular.csv')
+recom = read_csv('recommissioned.csv')
+second = read_csv('second.csv')
+```
+```{r}
+colnames(regular)
+```
+[1] "...1"                "dischargePhase"      "voltage_charger"
+[4] "temperature_battery" "current_load"        "time_end"
+
+```{r}
+# since every row is a failure event, we can just use the time_end column
+fit = survfit(Surv(time_end) ~ 1, data = data)
+ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
+```
+```{r}
+# histogram of time_end
+ggplot(regular, aes(x = time_end)) +
+  geom_histogram(bins = 40, fill = 'cyan4',color='black') +
+  ggtitle("Frequency of Failure Times")+
+  labs(x = 'Time to Death',
+       y = 'Count',
+       subtitle = 'Regular Battery Packs')
+```
+
+```{r}
+ggplot(recom, aes(x = time_end)) +
+  geom_histogram(bins = 40, fill = 'goldenrod',color='black') +
+  ggtitle("Frequency of Failure Times")+
+  labs(x = 'Time to Death',
+       y = 'Count',
+       subtitle = 'Recommissioned Battery Packs')
+```
+```{r}
+ggplot(second, aes(x = time_end)) +
+  geom_histogram(bins = 40, fill = 'forestgreen',color='black') +
+  ggtitle("Frequency of Failure Times")+
+  labs(x = 'Time to Death',
+       y = 'Count',
+       subtitle = 'Second-Life Battery Packs')
+```
+```{r}
+# filter out temps < 0
+regular = regular %>% filter(temperature_battery > 0)
+# drop times at 0
+regular = regular %>% filter(time_end > 10)
+# graph time x temperature_battery
+# color by magma
+```
+
+```{r}
+ggplot(regular, aes(x =temperature_battery, y = time_end, color= current_load)) +
+  geom_point(alpha=0.7) + # color magma
+  scale_color_viridis_c() +
+  labs(x = 'Battery Temperature (Degrees C)',
+       y = 'Time to Death',
+       color = 'Current Load')+
+  ggtitle("Time to Failure vs Battery Temperature")
+```
+
+```{r}
+# add a col for failure (they all failed)
+regular$failure = 1
+# drop instances where time_end is NA or 0
+regular = regular %>% filter(!is.na(time_end) & time_end != 0)
+```
+```{r}
+# create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
+weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
+  voltage_charger +
+  temperature_battery
+                      , data = regular, dist = "weibull")
+summary(weibull_fit)
+```
+(Intercept)                         18.07880    0.46667  38.7 <2e-16
+current_load                        -0.04667    0.00359 -13.0 <2e-16
+voltage_charger                     -1.89913    0.06973 -27.2 <2e-16
+temperature_battery                 -0.35592    0.01466 -24.3 <2e-16
+voltage_charger:temperature_battery  0.06021    0.00228  26.4 <2e-16
+Log(scale)                          -0.76061    0.00000  -Inf <2e-16
+
+Scale= 0.467
+
+Weibull distribution
+Loglik(model)= -40858.6   Loglik(intercept only)= -36321
+Chisq= -9075.19 on 4 degrees of freedom, p= 1
+Number of Newton-Raphson Iterations: 30
+n= 4863
+
+
+# this is a weibull model with a log scale of 0.467 is the best fit for the data
+
+```{r}
+# a function that takes a model and returns the mse, aic, and r^2
+model_metrics = function(model, regular) {
+  pred = predict(model, type = "response")
+  mse = mean((pred - regular$time_end)^2)
+  aic = AIC(model)
+  r2 = 1 - mse / var(regular$time_end)
+  print("MSE:")
+  print(mse)
+  print("AIC:")
+  print(aic)
+  print("R^2:")
+  print(r2)
+  return(c(mse, aic, r2))
+}
+model_metrics(weibull_fit, regular)
+```
+```{r}
+# a function that makes a km plot for a dataset
+km_plot = function(data) {
+  fit = survfit(Surv(time_end) ~ 1, data = data)
+  ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
+}
+km_plot(regular)
+```
+
+# Recommissioned Batteries
+
+```{r}
+summary(recom)
+```
+
+```{r}
+# add a col for failure (they all failed)
+recom = recom %>% filter(temperature_battery > 0)
+# drop times at 0
+recom = recom %>% filter(time_end > 10)
+# graph time x temperature_battery
+
+# add a col for failure (they all failed)
+recom$failure = 1
+# drop instances where time_end is NA or 0
+recom = recom %>% filter(!is.na(time_end) & time_end != 0)
+
+# create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
+weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
+  voltage_charger +
+  temperature_battery
+                      , data = recom, dist = "weibull")
+summary(weibull_fit)
+```
+
+# this is a weibull model with a log scale of 0.222 is the best fit for the data
+
+```{r}
+model_metrics = function(model, recom) {
+  pred = predict(model, type = "response")
+  mse = mean((pred - recom$time_end)^2)
+  aic = AIC(model)
+  r2 = 1 - mse / var(recom$time_end)
+  print("MSE:")
+  print(mse)
+  print("AIC:")
+  print(aic)
+  print("R^2:")
+  print(r2)
+  return(c(mse, aic, r2))
+}
+model_metrics(weibull_fit, recom)
+```
+```{r}
+# a function that makes a km plot for a dataset
+km_plot = function(data) {
+  fit = survfit(Surv(time_end) ~ 1, data = recom)
+  ggsurvplot(fit, data = recom, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
+}
+km_plot(recom)
+```
+
+# Second Life Batteries
+
+```{r}
+# add a col for failure (they all failed)
+second = second %>% filter(temperature_battery > 0)
+# drop times at 0
+second = second %>% filter(time_end > 10)
+
+# add a col for failure (they all failed)
+second$failure = 1
+# drop instances where time_end is NA or 0
+second = second %>% filter(!is.na(time_end) & time_end != 0)
+
+# create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
+weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
+  voltage_charger +
+  temperature_battery + voltage_charger*temperature_battery
+                      , data = second, dist = "weibull")
+summary(weibull_fit)
+```
+```{r}
+model_metrics = function(model, second) {
+  pred = predict(model, type = "response")
+  mse = mean((pred - second$time_end)^2)
+  aic = AIC(model)
+  r2 = 1 - mse / var(second$time_end)
+  print("MSE:")
+  print(mse)
+  print("AIC:")
+  print(aic)
+  print("R^2:")
+  print(r2)
+  return(c(mse, aic, r2))
+}
+model_metrics(weibull_fit, second)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
