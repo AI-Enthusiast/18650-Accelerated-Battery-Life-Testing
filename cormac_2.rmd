@@ -53,7 +53,7 @@ data = data %>% filter(!is.na(time_end) & time_end != 0)
 # create a weibull model for the time to failure using Current Load, Voltage Charger, and Temperature Battery
 weibull_fit = survreg(Surv(time_end, failure) ~ current_load +
   voltage_charger +
-  temperature_battery
+  temperature_battery + voltage_charger * temperature_battery
                       , data = data, dist = "weibull")
 summary(weibull_fit)
 ```
@@ -93,11 +93,10 @@ model_metrics = function(model, data) {
 model_metrics(weibull_fit, data)
 ```
 ```{r}
-# a function that makes a km plot for a dataset
-km_plot = function(data) {
-  fit = survfit(Surv(time_end) ~ 1, data = data)
-  ggsurvplot(fit, data = data, pval = TRUE, surv.median.line = "hv", conf.int = TRUE) + ggtitle("KM curve for Batteries")
-}
-km_plot(data)
-
+# graph the predicted vs actual time to failure
+pred = predict(weibull_fit, type = "response")
+ggplot(data, aes(x = time_end, y = pred)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  ggtitle("Predicted vs Actual Time to Failure") + xlab("Actual Time to Failure") + ylab("Predicted Time to Failure")
 ```
