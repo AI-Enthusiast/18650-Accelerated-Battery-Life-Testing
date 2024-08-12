@@ -55,7 +55,7 @@ regular_time_50 <- get_time_at_50(regular_fit)
 ```
 
 ```{r, echo=FALSE}
-offset = 1000
+offset = 650
 textsize = 5
 
 recom_fit = survfit(Surv(time_end, mode) ~ 1, data=recom)
@@ -77,9 +77,9 @@ second_plot = second_plot$plot + ggtitle('Second Life') + theme(plot.title = ele
   geom_text(aes(x = second_time_50+offset, y = 0.5,label=paste0("50% (", round(second_time_50, 2), ")")),vjust = -1, size = textsize)
 ```
 
-```{r, echo = FALSE, fig.width=10, fig.height=8}
-grid.arrange(regular_plot,second_plot,recom_plot,ncol=3, top = textGrob('Kaplan-Meyer Curves for Battery Packs',gp=gpar(fontsize=20,face='bold')))
-ggsave('kmcurves.png')
+```{r, echo = FALSE, fig.width=16, fig.height=9}
+kmcurve = grid.arrange(regular_plot,second_plot,recom_plot,ncol=3, top = textGrob('Kaplan-Meyer Curves for Battery Packs',gp=gpar(fontsize=20,face='bold')))
+ggsave('kmcurves.png',kmcurve,width=12,height=9)
 ```
 
 ```{r}
