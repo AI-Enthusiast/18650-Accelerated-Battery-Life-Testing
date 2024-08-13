@@ -47,6 +47,7 @@ current load, voltage, and temperature. The model provided significant insights,
 a strong fit.
 The equation (below) provided represents a Weibull regression model for predicting the time-to-failure (TTF) of a system
 based on various covariates:
+TTF∼Weibull(M=b0​+b1​Temp+b2​Voltage+b3​Current+b4​Temp×Voltage×Current+Type,σ=B1​)
 
 <img src="slides/ttf.png?raw=true"/>
 1. Weibull Distribution: Commonly used in reliability analysis, the Weibull distribution is defined by a shape parameter k and a scale parameter sigma. Here, sigma = 1/B, meaning B inversely affects the scale of the distribution.
