@@ -48,14 +48,22 @@ a strong fit.
 The equation (below) provided represents a Weibull regression model for predicting the time-to-failure (TTF) of a system
 based on various covariances:
 
-**TTF**~**Weibull**(*M* = *b*<sub>0</sub> + *b*<sub>1</sub> Temp<sup>~</sup> + *b*<sub>2</sub>  Volt<sup>~</sup> + *b*<sub>3</sub>Current + *b*<sub>4</sub>Temp × Volt × Current + Type, *σ* = 1/*B*)
+**TTF**~**Weibull**(*M* = *b*<sub>0</sub> + *b*<sub>1</sub> Temp<sup>~</sup> + *b*<sub>2</sub>  Volt<sup>~</sup> +
+*b*<sub>3</sub>Current + *b*<sub>4</sub>Temp × Volt × Current + Type, *σ* = 1/*B*)
 
-1. Weibull Distribution: Commonly used in reliability analysis, the Weibull distribution is defined by a shape parameter k and a scale parameter sigma. Here, sigma = 1/B, meaning B inversely affects the scale of the distribution.
+1. Weibull Distribution: Commonly used in reliability analysis, the Weibull distribution is defined by a shape parameter
+   k and a scale parameter sigma. Here, sigma = 1/B, meaning B inversely affects the scale of the distribution.
 2. Linear Predictor (M):
-- M is a linear combination of covariates: Arrhenius temp, log voltage, current, and their interaction (in our actual models, our interaction term included only Arrhenius temperature and log voltage)
-- b1, b2, b3 are coefficients for Arrhenius temp, log voltage, and current, respectively, while b4 captures the interaction between these factors.
+
+- M is a linear combination of covariates: Arrhenius temp, log voltage, current, and their interaction (in our actual
+  models, our interaction term included only Arrhenius temperature and log voltage)
+- b1, b2, b3 are coefficients for Arrhenius temp, log voltage, and current, respectively, while b4 captures the
+  interaction between these factors.
+
 3. Covariate Transformations:
-- Temperature: Transformed as **Temp**<sup>~</sup> = 11605/(**Temp Celsius** + 273.15) to reflect its inverse relationship with failure. This is the Arrhenius equation for temperature degradation.
+
+- Temperature: Transformed as **Temp**<sup>~</sup> = 11605/(**Temp Celsius** + 273.15) to reflect its inverse
+  relationship with failure. This is the Arrhenius equation for temperature degradation.
 - Voltage: Log-transformed as **Volt**<sup>~</sup> = *log*(**Voltage**) to linearize its effect on TTF.
 
 This model estimates TTF based on environmental and operational factors. The linear predictor M shifts the TTF
@@ -121,4 +129,5 @@ battery degradation on energy storage systems and electric vehicles could provid
 energy and automotive industries.
 
 ## References
+
 ### [Dataset](https://ntrs.nasa.gov/citations/20230014884)
