@@ -10,9 +10,9 @@ library(grid)
 ```
 
 ```{r}
-regular = read_csv('regular.csv')
-recom = read_csv('recommissioned.csv')
-second = read_csv('second.csv')
+regular = read_csv('../regular.csv')
+recom = read_csv('../recommissioned.csv')
+second = read_csv('../second.csv')
 ```
 ```{r}
 head(regular)
@@ -79,7 +79,7 @@ second_plot = second_plot$plot + ggtitle('Second Life') + theme(plot.title = ele
 
 ```{r, echo = FALSE, fig.width=16, fig.height=9}
 kmcurve = grid.arrange(regular_plot,second_plot,recom_plot,ncol=3, top = textGrob('Kaplan-Meyer Curves for Battery Packs',gp=gpar(fontsize=20,face='bold')))
-ggsave('kmcurves.png',kmcurve,width=12,height=9)
+ggsave('../kmcurves.png', kmcurve, width=12, height=9)
 ```
 
 ```{r}
