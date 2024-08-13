@@ -1,5 +1,4 @@
-# 18650 Battery Accelerated Life Testing Survival Analysis vs Machine Learning
-
+# [18650 Battery Accelerated Life Testing Survival Analysis vs Machine Learning](https://github.com/AI-Enthusiast/18650-Accelerated-Battery-Life-Testing/blob/main/slides/Machine%20Learning%20Final%20Presentation%20-%20Aryan%2C%20Avery%2C%20Cormac%2C%20Tyler.pdf)
 #### Aryan Bhardwaj, Cormac Dacker, Avery Pike, Tyler Gomez Riddick
 
 ## Introduction
