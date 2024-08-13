@@ -47,7 +47,7 @@ a strong fit.
 The equation (below) provided represents a Weibull regression model for predicting the time-to-failure (TTF) of a system
 based on various covariances:
 
-**TTF**~**Weibull**(*M* = *b*<sub>0</sub> + *b*<sub>1</sub> Temp<sup>~</sup> + *b*<sub>2</sub>  Volt<sup>~</sup> +
+**TTF**~**Weibull**(*M* = *b*<sub>0</sub> + *b*<sub>1</sub> Temp<sup>⟁</sup> + *b*<sub>2</sub>  Volt<sup>⟁</sup> +
 *b*<sub>3</sub>Current + *b*<sub>4</sub>Temp × Volt × Current + Type, *σ* = 1/*B*)
 
 1. Weibull Distribution: Commonly used in reliability analysis, the Weibull distribution is defined by a shape parameter
@@ -61,9 +61,9 @@ based on various covariances:
 
 3. Covariate Transformations:
 
-- Temperature: Transformed as **Temp**<sup>~</sup> = 11605/(**Temp Celsius** + 273.15) to reflect its inverse
+- Temperature: Transformed as **Temp**<sup>⟁</sup> = 11605/(**Temp Celsius** + 273.15) to reflect its inverse
   relationship with failure. This is the Arrhenius equation for temperature degradation.
-- Voltage: Log-transformed as **Volt**<sup>~</sup> = *log*(**Voltage**) to linearize its effect on TTF.
+- Voltage: Log-transformed as **Volt**<sup>⟁</sup> = *log*(**Voltage**) to linearize its effect on TTF.
 
 This model estimates TTF based on environmental and operational factors. The linear predictor M shifts the TTF
 distribution, while sigma influences its spread. The interaction term captures the combined effect of temperature,
