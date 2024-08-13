@@ -12,9 +12,9 @@ library(gridExtra)
 ```{r}
 ROOT = 'C://Users//corma//Documents//GitHub//18650-Accelerated-Battery-Life-Testing//'
 # read in regular.csv
-regular = read_csv('regular.csv')
-second_life = read_csv('second.csv')
-recommish = read_csv('recommissioned.csv')
+regular = read_csv('../regular.csv')
+second_life = read_csv('../second.csv')
+recommish = read_csv('../recommissioned.csv')
 
 # create a big data set with all the data and a new row indicating the source
 regular$source = 'Regular'
