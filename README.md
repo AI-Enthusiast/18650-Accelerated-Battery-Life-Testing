@@ -109,7 +109,9 @@ the most accurate and parsimonious choice.
 ### Results
 
 Our results can be found on our slides, submitted as part of this assignment. Additionally, visualizations can be found
-in our Jupyter notebook and R-markdown files. Ultimately, we found that the random forest model was most predictive, and
+in our [Jupyter notebook](https://github.com/AI-Enthusiast/18650-Accelerated-Battery-Life-Testing/blob/main/ML_WriteUp.ipynb)
+and [R-markdown](https://github.com/AI-Enthusiast/18650-Accelerated-Battery-Life-Testing/blob/main/WeibullRegression.rmd)
+files. Ultimately, we found that the random forest model was most predictive, and
 the Weibull regression and linear regression models were the least predictive.
 
 ## Conclusions and Future Research
