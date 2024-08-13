@@ -46,17 +46,17 @@ We used the fitdistrplus and survival packages to fit a Weibull model to the dat
 current load, voltage, and temperature. The model provided significant insights, with a high R-squared value indicating
 a strong fit.
 The equation (below) provided represents a Weibull regression model for predicting the time-to-failure (TTF) of a system
-based on various covariates:
-TTF∼Weibull(M=b0​+b1​Temp+b2​Voltage+b3​Current+b4​Temp×Voltage×Current+Type,σ=B1​)
+based on various covariances:
 
-<img src="slides/ttf.png?raw=true"/>
+**TTF**~**Weibull**(*M* = *b*<sub>0</sub> + *b*<sub>1</sub> Temp<sup>*</sup> + *b*<sub>2</sub>  Volt<sup>*</sup> + *b*<sub>3</sub>Current + *b*<sub>4</sub>Temp × Volt × Current + Type, *σ* = 1/*B*)
+
 1. Weibull Distribution: Commonly used in reliability analysis, the Weibull distribution is defined by a shape parameter k and a scale parameter sigma. Here, sigma = 1/B, meaning B inversely affects the scale of the distribution.
 2. Linear Predictor (M):
 - M is a linear combination of covariates: Arrhenius temp, log voltage, current, and their interaction (in our actual models, our interaction term included only Arrhenius temperature and log voltage)
 - b1, b2, b3 are coefficients for Arrhenius temp, log voltage, and current, respectively, while b4 captures the interaction between these factors.
 3. Covariate Transformations:
-- Temperature: Transformed as <img src="slides/temp.png?raw=true"/> to reflect its inverse relationship with failure. This is the Arrhenius equation for temperature degradation.
-- Voltage: Log-transformed as <img src="slides/volt.png?raw=true"/> to linearize its effect on TTF.
+- Temperature: Transformed as **Temp**<sup>*</sup> = 11605/(**Temp** + 273.15) to reflect its inverse relationship with failure. This is the Arrhenius equation for temperature degradation.
+- Voltage: Log-transformed as **Volt**<sup>*</sup> = *log*(**Voltage**) to linearize its effect on TTF.
 
 This model estimates TTF based on environmental and operational factors. The linear predictor M shifts the TTF
 distribution, while sigma influences its spread. The interaction term captures the combined effect of temperature,
