@@ -241,7 +241,7 @@ recomplot = ggplot(recom, aes(x = time_end, y = predrecom)) +
   xlim(0,3500)
 
 weibullreg = grid.arrange(regplot,recomplot,secondplot,ncol=1)
-ggsave('weibullregression.png',weibullreg, width=10,height=16)
+ggsave('slides/weibullregression.png', weibullreg, width=10, height=16)
 ```
 
 
