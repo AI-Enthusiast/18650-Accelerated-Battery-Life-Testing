@@ -11,13 +11,13 @@ library(gridExtra)
 ```{r}
 ROOT = 'C://Users//corma//Documents//GitHub//18650-Accelerated-Battery-Life-Testing//'
 # read in regular.csv
-data = read_csv('../second.csv')
+data = read_csv('../data/second.csv')
 ```
 ```{r}
 colnames(data)
-regular = read_csv('../regular.csv')
-recom = read_csv('../recommissioned.csv')
-second = read_csv('../second.csv')
+regular = read_csv('../data/regular.csv')
+recom = read_csv('../data/recommissioned.csv')
+second = read_csv('../data/second.csv')
 ```
 [1] "...1"                "dischargePhase"      "voltage_charger"
 [4] "temperature_battery" "current_load"        "time_end"
@@ -118,7 +118,7 @@ secondplot = ggplot(data, aes(x = time_end, y = pred)) +
 ```
 
 ```{r}
-reg = read_csv('../regular.csv')
+reg = read_csv('../data/regular.csv')
 
 # filter out temps < 0
 reg = reg %>% filter(temperature_battery > 0)
@@ -172,7 +172,7 @@ regplot = ggplot(reg, aes(x = time_end, y = predreg)) +
 ```
 
 ```{r}
-recom = read_csv('../recommissioned.csv')
+recom = read_csv('../data/recommissioned.csv')
 
 # filter out temps < 0
 recom = recom %>% filter(temperature_battery > 0)

@@ -9,9 +9,9 @@ library(skimr)
 ```{r}
 
 # read in regular.csv
-regular = read_csv('regular.csv')
-recom = read_csv('recommissioned.csv')
-second = read_csv('second.csv')
+regular = read_csv('data/regular.csv')
+recom = read_csv('data/recommissioned.csv')
+second = read_csv('data/second.csv')
 ```
 ```{r}
 colnames(regular)
